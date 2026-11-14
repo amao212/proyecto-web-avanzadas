@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}{{ p.nombre }}{% endblock %}
+{% block content %}
+<div class="fila"><h1>{{ p.nombre }} <small>({{ p.sku }})</small></h1>
+  <div class="acciones">
+    <a class="btn btn-sec" href="{{ url_for('main.producto_editar', id=p.id) }}">Editar</a>
+    <form method="post" action="{{ url_for('main.producto_eliminar', id=p.id) }}" data-confirm="¿Eliminar el producto {{ p.nombre }}? Esta acción no se puede deshacer." class="en-linea">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-peligro" type="submit">Eliminar</button></form>
+  </div></div>
+<section class="tarjeta">
+  <p>{{ p.descripcion or 'Sin descripción.' }}</p>
+  <p><b>Unidad:</b> {{ p.unidad }} · <b>Estado:</b> {{ p.estado }} · <b>Stock mínimo:</b> {{ p.stock_minimo }}</p>
+</section>
+<p><a href="{{ url_for('main.productos') }}">← Volver al listado</a></p>
+{% endblock %}
