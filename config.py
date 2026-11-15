@@ -18,6 +18,7 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(hours=2)
 
     RESET_TOKEN_MINUTOS = int(os.environ.get("RESET_TOKEN_MINUTOS", 30))
+    DIAS_ALERTA_CADUCIDAD = int(os.environ.get("DIAS_ALERTA_CADUCIDAD", 30))
     POR_PAGINA = 10
     ZONA_HORARIA = "America/Guayaquil"
 

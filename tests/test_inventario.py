@@ -1,7 +1,8 @@
 from datetime import date, timedelta
 
+from app import services
 from app.extensions import db
-from app.models import Lote, Movimiento, Producto
+from app.models import Lote, Movimiento, Producto, SolicitudReposicion, Usuario
 
 PROD = {"sku": "abc-100", "nombre": "Arroz 1kg", "descripcion": "", "stock_minimo": 5, "unidad": "unidad", "estado": "activo"}
 
@@ -90,5 +91,3 @@ def test_eliminar_producto_con_lotes_se_bloquea(login, app, datos):
     c.post(f"/productos/{datos['producto_id']}/eliminar")
     with app.app_context():
         assert Producto.query.count() == 1
-
-

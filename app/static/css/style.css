@@ -11,14 +11,19 @@ a { color: var(--azul); }
 .salir { display:flex; gap:.6rem; align-items:center; font-size:.9rem; }
 .tarjeta { background:#fff; border:1px solid var(--borde); border-radius:10px; padding:1rem 1.2rem; margin-bottom:1rem; }
 .estrecha { max-width:520px; margin-inline:auto; }
+.resumen { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+.resumen strong { display:block; font-size:1.8rem; }
+.resumen span { color:var(--gris); }
 .accesos, .acciones { display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0; }
 .fila { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:.5rem; }
 .btn { display:inline-block; background:var(--azul); color:#fff; border:0; border-radius:8px; padding:.5rem .9rem; cursor:pointer; text-decoration:none; font-size:.95rem; }
+.btn:hover, .btn:focus-visible { filter:brightness(.92); }
 .btn-sec { background:#fff; color:#0f172a; border:1px solid #cbd5e1; }
 .btn-peligro { background:var(--rojo); }
 .en-linea { display:inline; }
 .campo { margin-bottom:.9rem; display:flex; flex-direction:column; gap:.25rem; }
 .input { padding:.5rem .6rem; border:1px solid #cbd5e1; border-radius:8px; font:inherit; width:100%; }
+.input:focus-visible, .btn:focus-visible, a:focus-visible { outline:3px solid #93c5fd; outline-offset:1px; }
 .con-error .input { border-color:var(--rojo); }
 .error { color:var(--rojo); } .ayuda { color:var(--gris); font-size:.85rem; }
 .filtros { display:flex; flex-wrap:wrap; gap:.8rem; align-items:end; margin:1rem 0; }
@@ -44,3 +49,4 @@ th { background:#f1f5f9; }
 .mensajes { height:380px; overflow-y:auto; border:1px solid var(--borde); border-radius:8px; padding:.6rem; margin-bottom:.6rem; background:var(--fondo); }
 .msg p { margin:.1rem 0 .6rem; word-break:break-word; }
 #form-chat { display:flex; gap:.5rem; }
+@media (max-width:700px) { .chat { grid-template-columns:1fr; } }

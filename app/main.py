@@ -9,7 +9,8 @@ from sqlalchemy.orm import joinedload
 from . import services
 from .extensions import db
 from .forms import LoteForm, ProductoForm, ProveedorForm, SalidaForm
-from .models import Lote, Movimiento, Producto, Proveedor, SalaChat
+from .models import (Lote, Movimiento, Producto, Proveedor,
+                     SolicitudReposicion, ahora)
 
 bp = Blueprint("main", __name__)
 
@@ -37,7 +38,13 @@ def index():
 @bp.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", total_productos=Producto.query.filter_by(estado="activo").count())
+    return render_template(
+        "dashboard.html",
+        total_productos=Producto.query.filter_by(estado="activo").count(),
+        stock_bajo=services.productos_stock_bajo(),
+        por_caducar=services.lotes_por_caducar(),
+        vencidos=services.lotes_vencidos_con_stock(),
+        pendientes=SolicitudReposicion.query.filter_by(estado="pendiente").count())
 
 
 @bp.route("/productos")
@@ -102,6 +109,7 @@ def producto_eliminar(id):
     if Lote.query.filter_by(producto_id=id).first():
         flash("No se puede eliminar: tiene lotes y movimientos registrados. Márcalo como inactivo.", "danger")
         return redirect(url_for("main.producto_detalle", id=id))
+    SolicitudReposicion.query.filter_by(producto_id=id).delete()
     db.session.delete(p)
     db.session.commit()
     flash("Producto eliminado.", "success")
@@ -180,7 +188,29 @@ def proveedor_nuevo():
     return render_template("proveedores/form.html", form=form)
 
 
+@bp.route("/reposiciones")
+@login_required
+def reposiciones():
+    estado = request.args.get("estado", "pendiente")
+    query = SolicitudReposicion.query.options(joinedload(SolicitudReposicion.producto))
+    if estado in ("pendiente", "atendida"):
+        query = query.filter_by(estado=estado)
+    pag = query.order_by(SolicitudReposicion.id.desc()).paginate(page=_pagina(), per_page=current_app.config["POR_PAGINA"],
+                                                                 error_out=False)
+    return render_template("reposiciones.html", pag=pag, estado=estado, filtros={"estado": estado})
+
+
+@bp.route("/reposiciones/<int:id>/atender", methods=["POST"])
+@roles_required("admin", "bodega")
+def reposicion_atender(id):
+    s = db.get_or_404(SolicitudReposicion, id)
+    s.estado, s.atendida_en = "atendida", ahora()
+    db.session.commit()
+    flash("Solicitud marcada como atendida.", "success")
+    return redirect(url_for("main.reposiciones"))
+
+
 @bp.route("/chat")
 @login_required
 def chat():
-    return render_template("chat.html", salas=SalaChat.query.order_by(SalaChat.id).all())
+    return render_template("chat.html", salas=services.salas_permitidas(current_user))

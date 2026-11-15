@@ -5,8 +5,9 @@ from datetime import date, timedelta
 from flask import current_app
 from sqlalchemy import case, func, or_
 
-from .extensions import db
-from .models import Lote, Movimiento, Rol, SalaChat, TokenReset, ahora
+from .extensions import db, socketio
+from .models import (Lote, Movimiento, Producto, Rol, SalaChat,
+                     SolicitudReposicion, TokenReset, ahora)
 
 
 class StockInsuficiente(ValueError):
@@ -21,6 +22,13 @@ def asegurar_datos_base():
         if not SalaChat.query.filter_by(nombre=nombre).first():
             db.session.add(SalaChat(nombre=nombre))
     db.session.commit()
+
+
+def salas_permitidas(usuario):
+    q = SalaChat.query.order_by(SalaChat.id)
+    if usuario.rol.nombre == "admin":
+        return q.all()
+    return q.filter(func.lower(SalaChat.nombre).in_(["general", usuario.rol.nombre])).all()
 
 
 def conds_aptos():
@@ -41,6 +49,29 @@ def orden_fefo():
             Lote.fecha_caducidad, Lote.fecha_ingreso, Lote.id)
 
 
+def productos_stock_bajo(limite=10):
+    sub = (db.session.query(Lote.producto_id.label("pid"), func.sum(Lote.cantidad_disponible).label("stock"))
+           .filter(*conds_aptos()).group_by(Lote.producto_id).subquery())
+    stock = func.coalesce(sub.c.stock, 0)
+    return (db.session.query(Producto, stock.label("stock"))
+            .outerjoin(sub, sub.c.pid == Producto.id)
+            .filter(Producto.estado == "activo", stock <= Producto.stock_minimo)
+            .order_by(stock).limit(limite).all())
+
+
+def lotes_por_caducar(limite=10):
+    tope = date.today() + timedelta(days=current_app.config["DIAS_ALERTA_CADUCIDAD"])
+    return (Lote.query.join(Producto).filter(Producto.estado == "activo", *conds_aptos(),
+                                             Lote.fecha_caducidad.isnot(None), Lote.fecha_caducidad <= tope)
+            .order_by(Lote.fecha_caducidad).limit(limite).all())
+
+
+def lotes_vencidos_con_stock(limite=10):
+    return (Lote.query.filter(Lote.cantidad_disponible > 0, Lote.estado == "disponible",
+                              Lote.fecha_caducidad < date.today())
+            .order_by(Lote.fecha_caducidad).limit(limite).all())
+
+
 def registrar_entrada(producto, datos, usuario):
     lote = Lote(producto_id=producto.id, codigo=datos["codigo"], proveedor_id=datos["proveedor_id"],
                 cantidad_inicial=datos["cantidad"], cantidad_disponible=datos["cantidad"],
@@ -51,6 +82,7 @@ def registrar_entrada(producto, datos, usuario):
     db.session.add(Movimiento(tipo="ENTRADA", producto_id=producto.id, lote_id=lote.id,
                               cantidad=datos["cantidad"], usuario_id=usuario.id, motivo="Recepción de mercadería"))
     db.session.commit()
+    evaluar_alertas(producto)
     return lote
 
 
@@ -73,7 +105,32 @@ def registrar_salida(producto, cantidad, usuario, motivo=None):
         usados.append((lote.codigo, tomar))
         restante -= tomar
     db.session.commit()
+    evaluar_alertas(producto)
     return usados
+
+
+def evaluar_alertas(producto):
+    alertas = []
+    stock = stock_disponible(producto.id)
+    if stock <= producto.stock_minimo:
+        alertas.append({"tipo": "stock_minimo", "severidad": "danger", "producto_id": producto.id,
+                        "titulo": "Stock mínimo alcanzado",
+                        "mensaje": f"{producto.nombre} ({producto.sku}): quedan {stock}, mínimo {producto.stock_minimo}."})
+        if not SolicitudReposicion.query.filter_by(producto_id=producto.id, estado="pendiente").first():
+            db.session.add(SolicitudReposicion(producto_id=producto.id,
+                                               cantidad_sugerida=max(producto.stock_minimo * 2 - stock, 1)))
+            db.session.commit()
+    tope = date.today() + timedelta(days=current_app.config["DIAS_ALERTA_CADUCIDAD"])
+    por_caducar = (Lote.query.filter(Lote.producto_id == producto.id, *conds_aptos(),
+                                     Lote.fecha_caducidad.isnot(None), Lote.fecha_caducidad <= tope)
+                   .order_by(Lote.fecha_caducidad).all())
+    for l in por_caducar:
+        alertas.append({"tipo": "proximo_caducar", "severidad": "warning", "producto_id": producto.id,
+                        "titulo": "Lote próximo a caducar",
+                        "mensaje": f"Lote {l.codigo} de {producto.nombre} caduca el {l.fecha_caducidad:%d/%m/%Y}."})
+    for a in alertas:
+        socketio.emit("alerta", a)
+    return alertas
 
 
 def _hash_token(token):

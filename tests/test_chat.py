@@ -55,3 +55,48 @@ def test_chat_valida_mensajes_en_servidor(app, login):
         assert Mensaje.query.count() == 0
 
 
+def test_alerta_de_stock_minimo_llega_por_websocket_y_crea_reposicion(app, login, datos):
+    from app.models import SolicitudReposicion
+    c = login("admin")
+    s = socketio.test_client(app, flask_test_client=c)
+    s.get_received()
+    c.post(f"/productos/{datos['producto_id']}/salida", data={"cantidad": 27})
+    alertas = _recibidos(s, "alerta")
+    assert any(a["tipo"] == "stock_minimo" for a in alertas)
+    with app.app_context():
+        assert SolicitudReposicion.query.filter_by(estado="pendiente").count() == 1
+    c.post(f"/productos/{datos['producto_id']}/salida", data={"cantidad": 1})
+    with app.app_context():
+        assert SolicitudReposicion.query.count() == 1
+
+
+def test_salas_segun_el_rol(app, login):
+    from app.models import Rol, Usuario
+    from app.extensions import db
+    c = login("bodega")
+    r = c.get("/chat").data
+    assert b"General" in r and b"Bodega" in r and b"Ventas" not in r.replace(b"Ventas Demo", b"")
+    with app.app_context():
+        ventas = SalaChat.query.filter_by(nombre="Ventas").one().id
+        general = SalaChat.query.filter_by(nombre="General").one().id
+    s = socketio.test_client(app, flask_test_client=c)
+    s.get_received()
+    s.emit("unirse", {"sala_id": ventas})
+    assert _recibidos(s, "error_chat")[0]["mensaje"] == "No tienes acceso a esa sala."
+    s.emit("mensaje", {"sala_id": ventas, "texto": "intruso"})
+    s.emit("unirse", {"sala_id": general})
+    assert _recibidos(s, "historial")[0]["sala"] == "General"
+    with app.app_context():
+        assert Mensaje.query.count() == 0
+
+
+def test_ventas_ve_general_y_ventas_y_admin_ve_todas(app, login):
+    c = login("ventas")
+    r = c.get("/chat").data
+    assert b"General" in r and b"Ventas" in r and b">Bodega<" not in r
+    c2 = app.test_client()
+    crear = __import__("tests.conftest", fromlist=["crear_usuario"]).crear_usuario
+    crear(app, "adm@test.com", "admin")
+    c2.post("/login", data={"email": "adm@test.com", "password": CLAVE})
+    r2 = c2.get("/chat").data
+    assert b"General" in r2 and b">Bodega<" in r2 and b"Ventas" in r2

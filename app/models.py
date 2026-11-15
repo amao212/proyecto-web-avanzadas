@@ -120,6 +120,17 @@ class Movimiento(db.Model):
     usuario = db.relationship("Usuario")
 
 
+class SolicitudReposicion(db.Model):
+    __tablename__ = "solicitudes_reposicion"
+    id = db.Column(db.Integer, primary_key=True)
+    producto_id = db.Column(db.Integer, db.ForeignKey("productos.id"), index=True, nullable=False)
+    cantidad_sugerida = db.Column(db.Integer, nullable=False)
+    estado = db.Column(db.String(10), index=True, nullable=False, default="pendiente")
+    creada_en = db.Column(db.DateTime, default=ahora, nullable=False)
+    atendida_en = db.Column(db.DateTime)
+    producto = db.relationship("Producto")
+
+
 class SalaChat(db.Model):
     __tablename__ = "salas_chat"
     id = db.Column(db.Integer, primary_key=True)

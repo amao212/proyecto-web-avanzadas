@@ -7,6 +7,7 @@ from flask_socketio import emit, join_room, leave_room
 
 from .extensions import db, socketio
 from .models import Mensaje, SalaChat
+from .services import salas_permitidas
 
 MAX_MENSAJE = 500
 _CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
@@ -56,6 +57,8 @@ def unirse(data):
     sala = db.session.get(SalaChat, sala_id) if isinstance(sala_id, int) and info else None
     if not sala:
         return emit("error_chat", {"mensaje": "Sala no válida."})
+    if sala.id not in {s.id for s in salas_permitidas(current_user)}:
+        return emit("error_chat", {"mensaje": "No tienes acceso a esa sala."})
     if info["sala"]:
         leave_room(_sala(info["sala"]))
     join_room(_sala(sala.id))

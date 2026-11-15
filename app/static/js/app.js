@@ -18,4 +18,5 @@ function mostrarToast(titulo, texto, tipo) {
 window.mostrarToast = mostrarToast;
 
 window.socket = io();
+window.socket.on("alerta", (a) => mostrarToast(a.titulo, a.mensaje, a.severidad));
 window.socket.on("error_chat", (e) => mostrarToast("Chat", e.mensaje, "warning"));
