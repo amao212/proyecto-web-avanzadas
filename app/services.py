@@ -6,7 +6,7 @@ from flask import current_app
 from sqlalchemy import case, func, or_
 
 from .extensions import db
-from .models import Lote, Movimiento, Rol, TokenReset, ahora
+from .models import Lote, Movimiento, Rol, SalaChat, TokenReset, ahora
 
 
 class StockInsuficiente(ValueError):
@@ -17,6 +17,9 @@ def asegurar_datos_base():
     for nombre in ("admin", "bodega", "ventas"):
         if not Rol.query.filter_by(nombre=nombre).first():
             db.session.add(Rol(nombre=nombre))
+    for nombre in ("General", "Bodega", "Ventas"):
+        if not SalaChat.query.filter_by(nombre=nombre).first():
+            db.session.add(SalaChat(nombre=nombre))
     db.session.commit()
 
 

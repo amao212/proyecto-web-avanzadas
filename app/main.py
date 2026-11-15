@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 from . import services
 from .extensions import db
 from .forms import LoteForm, ProductoForm, ProveedorForm, SalidaForm
-from .models import Lote, Movimiento, Producto, Proveedor
+from .models import Lote, Movimiento, Producto, Proveedor, SalaChat
 
 bp = Blueprint("main", __name__)
 
@@ -180,3 +180,7 @@ def proveedor_nuevo():
     return render_template("proveedores/form.html", form=form)
 
 
+@bp.route("/chat")
+@login_required
+def chat():
+    return render_template("chat.html", salas=SalaChat.query.order_by(SalaChat.id).all())

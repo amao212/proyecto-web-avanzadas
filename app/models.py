@@ -120,3 +120,18 @@ class Movimiento(db.Model):
     usuario = db.relationship("Usuario")
 
 
+class SalaChat(db.Model):
+    __tablename__ = "salas_chat"
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(40), unique=True, nullable=False)
+
+
+class Mensaje(db.Model):
+    __tablename__ = "mensajes"
+    __table_args__ = (db.Index("ix_mensajes_sala_fecha", "sala_id", "creado_en"),)
+    id = db.Column(db.Integer, primary_key=True)
+    sala_id = db.Column(db.Integer, db.ForeignKey("salas_chat.id"), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+    contenido = db.Column(db.String(500), nullable=False)
+    creado_en = db.Column(db.DateTime, default=ahora, nullable=False)
+    usuario = db.relationship("Usuario")

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from app import create_app
+from app import create_app, sockets
 from app.extensions import db
 from app.models import Lote, Producto, Proveedor, Rol, Usuario
 from config import TestConfig
@@ -13,6 +13,7 @@ CLAVE = "Clave1234"
 @pytest.fixture
 def app():
     app = create_app(TestConfig)
+    sockets.conectados.clear()
     yield app
     with app.app_context():
         db.session.remove()

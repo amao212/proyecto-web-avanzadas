@@ -15,6 +15,7 @@
     <a href="{{ url_for('main.productos') }}">Productos</a>
     <a href="{{ url_for('main.movimientos') }}">Movimientos</a>
     <a href="{{ url_for('main.proveedores') }}">Proveedores</a>
+    <a href="{{ url_for('main.chat') }}">Chat</a>
   </nav>
   <form method="post" action="{{ url_for('auth.logout') }}" class="salir">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -29,7 +30,11 @@
   {% endwith %}
   {% block content %}{% endblock %}
 </main>
+<div id="toasts" aria-live="polite"></div>
+{% if current_user.is_authenticated %}
+<script src="{{ url_for('static', filename='vendor/socket.io.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endif %}
 {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -5,7 +5,7 @@ from flask import Flask
 
 from config import Config
 
-from .extensions import csrf, db, login_manager
+from .extensions import csrf, db, login_manager, socketio
 
 
 def create_app(config_object=Config):
@@ -15,7 +15,9 @@ def create_app(config_object=Config):
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
+    socketio.init_app(app, async_mode="threading")
 
+    from . import sockets
     from .auth import bp as auth_bp
     from .cli import register_cli
     from .main import bp as main_bp

@@ -45,7 +45,7 @@ def test_login_ignora_redireccion_externa(client, app):
 
 
 def test_rutas_protegidas_exigen_sesion(client):
-    for url in ("/dashboard", "/productos", "/productos/nuevo", "/movimientos", "/proveedores"):
+    for url in ("/dashboard", "/productos", "/productos/nuevo", "/movimientos", "/chat", "/proveedores"):
         r = client.get(url)
         assert r.status_code == 302 and "/login" in r.headers["Location"], url
 
@@ -67,5 +67,3 @@ def test_token_de_recuperacion_un_solo_uso_y_caduca(client, app):
         reg.expira_en = ahora() - timedelta(minutes=1)
         db.session.commit()
         assert services.validar_token(tok) is None
-
-
