@@ -27,6 +27,7 @@ a { color: var(--azul); }
 table { width:100%; border-collapse:collapse; background:#fff; }
 th, td { text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--borde); }
 th { background:#f1f5f9; }
+.critico { color:var(--rojo); font-weight:700; } .vencido { background:#fef2f2; }
 .paginacion { display:flex; gap:.5rem; flex-wrap:wrap; margin:1rem 0 .2rem; }
 .paginacion a, .paginacion strong, .paginacion span { padding:.25rem .6rem; border:1px solid var(--borde); border-radius:6px; background:#fff; text-decoration:none; }
 .paginacion strong { background:var(--azul); color:#fff; }

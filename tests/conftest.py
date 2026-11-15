@@ -1,8 +1,10 @@
+from datetime import date, timedelta
+
 import pytest
 
 from app import create_app
 from app.extensions import db
-from app.models import Rol, Usuario
+from app.models import Lote, Producto, Proveedor, Rol, Usuario
 from config import TestConfig
 
 CLAVE = "Clave1234"
@@ -39,3 +41,19 @@ def login(app, client):
         assert r.status_code == 302
         return client
     return _login
+
+
+@pytest.fixture
+def datos(app):
+    with app.app_context():
+        prov = Proveedor(nombre="Proveedor Test", ruc="1790000000001")
+        prod = Producto(sku="TEST-1", nombre="Producto de prueba", stock_minimo=5)
+        db.session.add_all([prov, prod])
+        db.session.flush()
+        hoy = date.today()
+        for cod, cant, dias in (("B", 20, 120), ("A", 10, 60)):
+            db.session.add(Lote(codigo=cod, producto_id=prod.id, proveedor_id=prov.id, cantidad_inicial=cant,
+                                cantidad_disponible=cant, costo_unitario=1, fecha_ingreso=hoy,
+                                fecha_caducidad=hoy + timedelta(days=dias)))
+        db.session.commit()
+        return {"producto_id": prod.id, "proveedor_id": prov.id}

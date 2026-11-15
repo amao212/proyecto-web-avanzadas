@@ -13,6 +13,8 @@
   <nav aria-label="Principal">
     <a href="{{ url_for('main.dashboard') }}">Inicio</a>
     <a href="{{ url_for('main.productos') }}">Productos</a>
+    <a href="{{ url_for('main.movimientos') }}">Movimientos</a>
+    <a href="{{ url_for('main.proveedores') }}">Proveedores</a>
   </nav>
   <form method="post" action="{{ url_for('auth.logout') }}" class="salir">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

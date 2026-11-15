@@ -1,4 +1,8 @@
-from app.models import Usuario
+from datetime import timedelta
+
+from app import services
+from app.extensions import db
+from app.models import TokenReset, Usuario, ahora
 
 from .conftest import CLAVE, crear_usuario
 
@@ -41,8 +45,27 @@ def test_login_ignora_redireccion_externa(client, app):
 
 
 def test_rutas_protegidas_exigen_sesion(client):
-    for url in ("/dashboard", "/productos", "/productos/nuevo"):
+    for url in ("/dashboard", "/productos", "/productos/nuevo", "/movimientos", "/proveedores"):
         r = client.get(url)
         assert r.status_code == 302 and "/login" in r.headers["Location"], url
+
+
+def test_token_de_recuperacion_un_solo_uso_y_caduca(client, app):
+    crear_usuario(app)
+    with app.app_context():
+        u = Usuario.query.one()
+        token = services.crear_token_reset(u)
+        nuevo = services.crear_token_reset(u)
+        assert services.validar_token(token) is None
+    r = client.post(f"/reset/{nuevo}", data={"password": "Nueva12345", "confirmar": "Nueva12345"})
+    assert r.status_code == 302
+    assert client.get(f"/reset/{nuevo}").status_code == 302
+    assert client.post("/login", data={"email": "admin@test.com", "password": "Nueva12345"}).status_code == 302
+    with app.app_context():
+        tok = services.crear_token_reset(Usuario.query.one())
+        reg = TokenReset.query.filter_by(usado=False).one()
+        reg.expira_en = ahora() - timedelta(minutes=1)
+        db.session.commit()
+        assert services.validar_token(tok) is None
 
 

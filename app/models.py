@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import bcrypt
 from flask_login import UserMixin
@@ -43,6 +43,25 @@ def cargar_usuario(user_id):
     return u if u and u.activo else None
 
 
+class TokenReset(db.Model):
+    __tablename__ = "tokens_reset"
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), index=True, nullable=False)
+    token_hash = db.Column(db.String(64), unique=True, index=True, nullable=False)
+    expira_en = db.Column(db.DateTime, nullable=False)
+    usado = db.Column(db.Boolean, default=False, nullable=False)
+    creado_en = db.Column(db.DateTime, default=ahora, nullable=False)
+    usuario = db.relationship("Usuario")
+
+
+class Proveedor(db.Model):
+    __tablename__ = "proveedores"
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(120), nullable=False)
+    ruc = db.Column(db.String(13), unique=True, nullable=False)
+    telefono = db.Column(db.String(16))
+
+
 class Producto(db.Model):
     __tablename__ = "productos"
     id = db.Column(db.Integer, primary_key=True)
@@ -53,3 +72,51 @@ class Producto(db.Model):
     unidad = db.Column(db.String(10), nullable=False, default="unidad")
     estado = db.Column(db.String(10), index=True, nullable=False, default="activo")
     creado_en = db.Column(db.DateTime, default=ahora, nullable=False)
+    lotes = db.relationship("Lote", back_populates="producto")
+
+    @property
+    def stock_disponible(self):
+        return sum(l.cantidad_disponible for l in self.lotes if l.es_apto)
+
+
+class Lote(db.Model):
+    __tablename__ = "lotes"
+    __table_args__ = (db.UniqueConstraint("producto_id", "codigo", name="uq_lote_producto_codigo"),)
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(40), index=True, nullable=False)
+    producto_id = db.Column(db.Integer, db.ForeignKey("productos.id"), index=True, nullable=False)
+    proveedor_id = db.Column(db.Integer, db.ForeignKey("proveedores.id"), nullable=False)
+    cantidad_inicial = db.Column(db.Integer, nullable=False)
+    cantidad_disponible = db.Column(db.Integer, nullable=False)
+    costo_unitario = db.Column(db.Numeric(10, 2), nullable=False)
+    fecha_ingreso = db.Column(db.Date, nullable=False)
+    fecha_caducidad = db.Column(db.Date, index=True)
+    ubicacion = db.Column(db.String(60))
+    estado = db.Column(db.String(12), nullable=False, default="disponible")
+    producto = db.relationship("Producto", back_populates="lotes")
+    proveedor = db.relationship("Proveedor")
+
+    @property
+    def vencido(self):
+        return self.fecha_caducidad is not None and self.fecha_caducidad < date.today()
+
+    @property
+    def es_apto(self):
+        return self.estado == "disponible" and self.cantidad_disponible > 0 and not self.vencido
+
+
+class Movimiento(db.Model):
+    __tablename__ = "movimientos"
+    id = db.Column(db.Integer, primary_key=True)
+    tipo = db.Column(db.String(10), index=True, nullable=False)
+    producto_id = db.Column(db.Integer, db.ForeignKey("productos.id"), index=True, nullable=False)
+    lote_id = db.Column(db.Integer, db.ForeignKey("lotes.id"), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+    motivo = db.Column(db.String(120))
+    fecha = db.Column(db.DateTime, default=ahora, index=True, nullable=False)
+    producto = db.relationship("Producto")
+    lote = db.relationship("Lote")
+    usuario = db.relationship("Usuario")
+
+

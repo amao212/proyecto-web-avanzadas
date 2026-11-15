@@ -1,22 +1,23 @@
 # Sistema web de inventario, lotes y reabastecimiento — Bimestre 1
 
-**Base del proyecto y autenticación**
+Commit 2 de 5 · **Recuperación de clave, proveedores, lotes y movimientos**
 
 PYME ficticia: *Distribuidora Andina* (alimentos no perecibles y bebidas). Stack: Python · Flask · Jinja2 · SQLAlchemy · bcrypt · pytest.
 
 ## Novedades de esta versión
-- Estructura Flask (application factory, blueprints, SQLAlchemy, Jinja2) con configuración por variables de entorno.
-- Registro, inicio y cierre de sesión con contraseñas **bcrypt** (hash con sal), roles `admin`/`bodega`/`ventas` y rutas protegidas.
-- CSRF en todos los formularios y validación en cliente (HTML5) y servidor (WTForms).
-- CRUD de **productos** (catálogo): listado paginado con búsqueda y filtro por estado, detalle por identificador, edición y eliminación con confirmación.
-- 7 pruebas automatizadas.
+- Recuperación de contraseña con token de un solo uso y caducidad (correo simulado en consola).
+- Permisos por rol (`admin`, `bodega`, `ventas`) con respuesta 403.
+- Proveedores, **lotes** (recepción de mercadería con costo, caducidad y ubicación) y **movimientos** de entrada/salida.
+- Salidas con **FEFO**: se despacha primero el lote apto que caduca antes; los vencidos se excluyen.
+- Stock disponible por producto, detalle con lotes y movimientos, comando `flask --app run seed` con datos de demostración.
+- 13 pruebas automatizadas.
 
 ## Cómo ejecutarlo
 ```bash
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-# la base se crea sola al iniciar
+flask --app run seed
 python run.py
 pytest
 ```

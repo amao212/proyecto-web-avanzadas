@@ -1,11 +1,12 @@
 from urllib.parse import urlparse
 
 import bcrypt
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
+from . import services
 from .extensions import db
-from .forms import LoginForm, RegistroForm
+from .forms import LoginForm, OlvideForm, RegistroForm, ResetForm
 from .models import Rol, Usuario
 
 bp = Blueprint("auth", __name__)
@@ -58,3 +59,31 @@ def logout():
     logout_user()
     flash("Sesión cerrada.", "info")
     return redirect(url_for("auth.signin"))
+
+
+@bp.route("/olvide", methods=["GET", "POST"])
+def olvide():
+    form = OlvideForm()
+    if form.validate_on_submit():
+        u = Usuario.query.filter_by(email=form.email.data).first()
+        if u and u.activo:
+            token = services.crear_token_reset(u)
+            current_app.logger.warning("[CORREO SIMULADO] Para %s: %s", u.email,
+                                       url_for("auth.reset", token=token, _external=True))
+        flash("Si el correo existe, se envió un enlace de recuperación (revisa la consola del servidor).", "info")
+        return redirect(url_for("auth.signin"))
+    return render_template("auth/olvide.html", form=form)
+
+
+@bp.route("/reset/<token>", methods=["GET", "POST"])
+def reset(token):
+    registro = services.validar_token(token)
+    if not registro:
+        flash("El enlace no es válido, ya fue usado o expiró.", "danger")
+        return redirect(url_for("auth.olvide"))
+    form = ResetForm()
+    if form.validate_on_submit():
+        services.consumir_token(registro, form.password.data)
+        flash("Contraseña actualizada. Inicia sesión.", "success")
+        return redirect(url_for("auth.signin"))
+    return render_template("auth/reset.html", form=form)

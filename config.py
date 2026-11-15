@@ -17,7 +17,9 @@ class Config:
     SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") == "1"
     PERMANENT_SESSION_LIFETIME = timedelta(hours=2)
 
+    RESET_TOKEN_MINUTOS = int(os.environ.get("RESET_TOKEN_MINUTOS", 30))
     POR_PAGINA = 10
+    ZONA_HORARIA = "America/Guayaquil"
 
 
 class TestConfig(Config):
