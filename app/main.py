@@ -30,6 +30,10 @@ def _pagina():
     return max(request.args.get("page", 1, type=int), 1)
 
 
+def _like(texto):
+    return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 @bp.route("/")
 def index():
     return redirect(url_for("main.dashboard" if current_user.is_authenticated else "auth.signin"))
@@ -54,8 +58,8 @@ def productos():
     estado = request.args.get("estado", "")
     query = Producto.query
     if q:
-        query = query.filter(or_(Producto.sku.ilike(f"{q}%"),
-                                 Producto.nombre.ilike(f"%{q}%")))
+        query = query.filter(or_(Producto.sku.ilike(f"{_like(q)}%", escape="\\"),
+                                 Producto.nombre.ilike(f"%{_like(q)}%", escape="\\")))
     if estado in ("activo", "inactivo"):
         query = query.filter(Producto.estado == estado)
     pag = query.order_by(Producto.nombre).paginate(page=_pagina(), per_page=current_app.config["POR_PAGINA"],

@@ -1,7 +1,7 @@
 from zoneinfo import ZoneInfo
 from datetime import timezone
 
-from flask import Flask
+from flask import Flask, render_template
 
 from config import Config
 
@@ -34,6 +34,16 @@ def create_app(config_object=Config):
         if not dt:
             return "—"
         return dt.replace(tzinfo=timezone.utc).astimezone(ZoneInfo(app.config["ZONA_HORARIA"])).strftime("%d/%m/%Y %H:%M")
+
+    @app.after_request
+    def cabeceras(resp):
+        resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+        resp.headers.setdefault("X-Frame-Options", "DENY")
+        resp.headers.setdefault("Referrer-Policy", "same-origin")
+        return resp
+
+    for codigo, titulo in ((403, "Acceso denegado"), (404, "Página no encontrada")):
+        app.register_error_handler(codigo, lambda e, c=codigo, t=titulo: (render_template("error.html", codigo=c, titulo=t), c))
 
     with app.app_context():
         from .services import asegurar_datos_base
