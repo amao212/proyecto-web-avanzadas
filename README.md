@@ -18,7 +18,8 @@ Python 3.11+ · Flask · Jinja2 (vistas en servidor) · SQLAlchemy (SQLite por d
 
 ## 3. Cómo ejecutarlo
 ```bash
-python -m venv venv && source venv/bin/activate        # Windows: venv\Scripts\activate
+python -m venv venv                                    # Crear entorno virtual
+venv\Scripts\activate                                  # Activar entorno virtual, para Linux:  venv/bin/activate 
 pip install -r requirements.txt
 cp .env.example .env                                   # edita SECRET_KEY
 flask --app run seed                                   # datos de demostración (imprime la contraseña demo)
@@ -158,23 +159,27 @@ app/  __init__.py  models.py  forms.py  services.py  auth.py  main.py  sockets.p
 tests/  scripts/medir_rendimiento.py  config.py  run.py  requirements.txt  .env.example
 ```
 
-## 12. Equipo y cronograma (completar)
+## 12. Equipo y cronograma
 | Integrante | Rol | Responsabilidades |
 |---|---|---|
-| … | Líder / backend | … |
-| … | Backend / base de datos | … |
-| … | Frontend / vistas | … |
-| … | Tiempo real / chat | … |
-| … | QA / documentación | … |
+| Angel Anguaya (amao212)| Líder / backend | Estructura base Flask, autenticación con bcrypt, sesiones seguras y CRUD de productos. (Commit 1: 5801ee8)|
+| Antony Chiluiza (AnthonyChiluiza) | Backend / base de datos | Entidades de lotes, proveedores y movimientos; algoritmo FEFO, recuperación de clave y datos seed. (Commit 2: 20aba32) |
+| Andrea Chicaiza (andrea-m11) | Tiermpo real / chat | Servidor WebSocket propio con Flask-SocketIO, chat con salas, presencia en vivo e historial. (Commit 3: e110469) |
+| Jhonny Moreira (Jhonny-Bryan-Moreira-Ramos)| Frontend / vistas | Plantillas Jinja2, diseño responsivo CSS, dashboard con métricas, alertas toast y reposiciones (Commit 4: 9d8cab3)|
+| Javier Angulo (Javoerito)| QA / documentación | Cabeceras de seguridad HTTP, páginas 403/404, script de rendimiento (20k registros), suite de pruebas y README. (Commit 5: 1f6d3c3)|
 
-Cronograma sugerido (6 semanas): S1 análisis y modelo de datos · S2 autenticación y recuperación · S3 CRUD y lotes · S4 chat y alertas · S5 pruebas y rendimiento · S6 documentación y defensa.
+#### Cronograma de desarrollo (2 semanas)
+
+* **Semana 1 (Sprint 1: Análisis y Prototipado):**
+  * **Días 1-4:** Requisitos, historias de usuario, diagramas de arquitectura y modelo de datos relacional.
+  * **Días 5-7:** Configuración de entorno, modelos SQLAlchemy y pruebas de concepto de Flask-SocketIO.
+
+* **Semana 2 (Sprint 2: Implementación, Integración y Pruebas):**
+  * **14 Nov:** Estructura base, auth bcrypt, CRUD de productos, tokens de recuperación y FEFO (Commits 1 y 2).
+  * **15 Nov:** Servidor WebSocket, chat con historial, alertas en tiempo real y reposiciones (Commits 3 y 4).
+  * **16-17 Nov:** Cabeceras de seguridad, errores 403/404, 19 pruebas unitarias, medición de rendimiento con 20k registros y versión v1.0-b1 (Commit 5).
 
 ## 13. Uso de IA (declaración)
 Se usó **Claude (Anthropic)** como apoyo para redactar la propuesta y generar el código base, las pruebas y esta documentación. El grupo revisó, ejecutó y probó el código y puede explicarlo y modificarlo en la defensa.
-*(Ajustar esta sección con el uso real de cada integrante.)*
 
-## 14. Entrega
-```bash
-git tag v1.0-b1 && git push origin v1.0-b1
-```
-No subir `.env`, bases de datos ni credenciales reales.
+
