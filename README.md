@@ -219,22 +219,7 @@ app/  __init__.py  models.py  forms.py  services.py  auth.py  main.py  sockets.p
 tests/  scripts/(medir_rendimiento.py, verificar_contraste.py)  config.py  run.py  requirements.txt  .env.example
 ```
 
-## 12. Equipo y cronograma (completar)
-| Integrante | Rol | Responsabilidades |
-|---|---|---|
-| … | Líder / backend | … |
-| … | Backend / base de datos | … |
-| … | Frontend / vistas | … |
-| … | Tiempo real / chat | … |
-| … | QA / documentación | … |
-
-Cronograma sugerido (6 semanas): S1 análisis y modelo de datos · S2 autenticación y recuperación · S3 CRUD y lotes · S4 chat y alertas · S5 pruebas y rendimiento · S6 documentación y defensa.
-
-## 13. Uso de IA (declaración)
-Se usó **Claude (Anthropic)** como apoyo para redactar la propuesta y generar el código base, las pruebas y esta documentación. El grupo revisó, ejecutó y probó el código y puede explicarlo y modificarlo en la defensa.
-*(Ajustar esta sección con el uso real de cada integrante.)*
-
-## 14. Entrega
+## 12. Entrega
 ```bash
 git tag v1.0-b1 && git push origin v1.0-b1
 ```
