@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% from "_macros.html" import paginacion %}{% block title %}Proveedores{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h2 mb-0">Proveedores</h1>
+  {% if current_user.rol.nombre in ('admin','bodega') %}<a class="btn btn-primary" href="{{ url_for('main.proveedor_nuevo') }}">+ Nuevo proveedor</a>{% endif %}
+</div>
+<div class="table-responsive"><table class="table table-striped align-middle">
+  <caption class="visually-hidden">Listado de proveedores</caption>
+  <thead><tr><th scope="col">Nombre</th><th scope="col">RUC</th><th scope="col">Teléfono</th></tr></thead>
+  <tbody>{% for p in pag.items %}<tr><td>{{ p.nombre }}</td><td>{{ p.ruc }}</td><td>{{ p.telefono or '—' }}</td></tr>
+  {% else %}<tr><td colspan="3">Sin proveedores.</td></tr>{% endfor %}</tbody>
+</table></div>
+{{ paginacion(pag, 'main.proveedores', filtros) }}
+{% endblock %}

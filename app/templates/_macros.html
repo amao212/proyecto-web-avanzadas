@@ -1,0 +1,32 @@
+{% macro campo(f, ayuda=None) %}
+{% set ids = [] %}
+{% if ayuda %}{% set _ = ids.append(f.id ~ '-ayuda') %}{% endif %}
+{% if f.errors %}{% set _ = ids.append(f.id ~ '-error') %}{% set _ = kwargs.update({'aria-invalid': 'true'}) %}{% endif %}
+{% if ids %}{% set _ = kwargs.update({'aria-describedby': ids|join(' ')}) %}{% endif %}
+{% set base = 'form-select' if f.type in ('SelectField', 'SelectMultipleField') else 'form-control' %}
+<div class="mb-3">
+  {{ f.label(class_="form-label fw-semibold") }}
+  {{ f(class_=base ~ (' is-invalid' if f.errors else ''), **kwargs) }}
+  {% if ayuda %}<div id="{{ f.id }}-ayuda" class="form-text">{{ ayuda }}</div>{% endif %}
+  {% if f.errors %}<div id="{{ f.id }}-error" class="invalid-feedback d-block">{% for e in f.errors %}{{ e }}{% if not loop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro paginacion(pag, endpoint, params={}) %}
+{% if pag.pages > 1 %}
+<nav aria-label="Paginación">
+  <ul class="pagination flex-wrap mb-2">
+    {% if pag.has_prev %}<li class="page-item"><a class="page-link" href="{{ url_for(endpoint, page=pag.prev_num, **params) }}">« Anterior</a></li>{% endif %}
+    {% for n in pag.iter_pages() %}
+      {% if n is none %}<li class="page-item disabled"><span class="page-link">…</span></li>
+      {% elif n == pag.page %}<li class="page-item active" aria-current="page"><span class="page-link">{{ n }}</span></li>
+      {% else %}<li class="page-item"><a class="page-link" href="{{ url_for(endpoint, page=n, **params) }}">{{ n }}</a></li>{% endif %}
+    {% endfor %}
+    {% if pag.has_next %}<li class="page-item"><a class="page-link" href="{{ url_for(endpoint, page=pag.next_num, **params) }}">Siguiente »</a></li>{% endif %}
+  </ul>
+</nav>
+<p class="form-text">Mostrando {{ pag.items|length }} de {{ pag.total }} registros</p>
+{% endif %}
+{% endmacro %}
+
+{% macro csrf_input() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}

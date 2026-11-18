@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% from "_macros.html" import campo %}{% block title %}Iniciar sesión{% endblock %}
+{% block content %}
+<section class="card shadow-sm mx-auto form-estrecha" aria-labelledby="titulo">
+  <div class="card-body p-4">
+    <h1 id="titulo" class="h3 mb-3">Iniciar sesión</h1>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ campo(form.email) }}{{ campo(form.password) }}
+      <button class="btn btn-primary w-100" type="submit">Entrar</button>
+    </form>
+    <p class="mt-3 mb-0"><a href="{{ url_for('auth.olvide') }}">¿Olvidaste tu contraseña?</a> · <a href="{{ url_for('auth.signup') }}">Crear cuenta</a></p>
+  </div>
+</section>
+{% endblock %}

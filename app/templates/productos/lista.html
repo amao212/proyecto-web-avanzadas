@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% from "_macros.html" import paginacion %}{% block title %}Productos{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h2 mb-0">Productos</h1>
+  {% if current_user.rol.nombre in ('admin','bodega') %}<a class="btn btn-primary" href="{{ url_for('main.producto_nuevo') }}">+ Nuevo producto</a>{% endif %}
+</div>
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar productos">
+  <div class="col-12 col-md-5"><label for="q" class="form-label fw-semibold">Buscar</label>
+    <input id="q" class="form-control" type="search" name="q" value="{{ q }}" maxlength="100" placeholder="SKU o nombre"></div>
+  <div class="col-8 col-md-3"><label for="estado" class="form-label fw-semibold">Estado</label>
+    <select id="estado" class="form-select" name="estado">
+      <option value="">Todos</option>
+      <option value="activo" {{ 'selected' if estado=='activo' }}>Activo</option>
+      <option value="inactivo" {{ 'selected' if estado=='inactivo' }}>Inactivo</option></select></div>
+  <div class="col-4 col-md-auto"><button class="btn btn-primary w-100" type="submit">Filtrar</button></div>
+</form>
+<div class="table-responsive">
+<table class="table table-striped table-hover align-middle">
+  <caption class="visually-hidden">Listado de productos</caption>
+  <thead><tr><th scope="col">SKU</th><th scope="col">Nombre</th><th scope="col">Unidad</th><th scope="col">Stock disp.</th><th scope="col">Mínimo</th><th scope="col">Estado</th><th scope="col"><span class="visually-hidden">Acciones</span></th></tr></thead>
+  <tbody>{% for p in pag.items %}
+    <tr><td>{{ p.sku }}</td><td>{{ p.nombre }}</td><td>{{ p.unidad }}</td>
+      <td>{% if p.stock_disponible <= p.stock_minimo %}<strong class="stock-bajo"><span aria-hidden="true">⚠ </span>{{ p.stock_disponible }}<span class="visually-hidden"> (stock bajo)</span></strong>{% else %}{{ p.stock_disponible }}{% endif %}</td>
+      <td>{{ p.stock_minimo }}</td><td>{{ p.estado }}</td>
+      <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.producto_detalle', id=p.id) }}" aria-label="Ver {{ p.nombre }}">Ver</a></td></tr>
+  {% else %}<tr><td colspan="7">No se encontraron productos.</td></tr>{% endfor %}</tbody>
+</table>
+</div>
+{{ paginacion(pag, 'main.productos', filtros) }}
+{% endblock %}

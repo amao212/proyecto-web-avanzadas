@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% from "_macros.html" import campo %}{% block title %}Entrada de lote{% endblock %}
+{% block content %}
+<section class="card shadow-sm mx-auto form-estrecha" aria-labelledby="titulo">
+  <div class="card-body p-4">
+    <h1 id="titulo" class="h3">Recepción de mercadería</h1>
+    <p>Producto: <strong>{{ p.nombre }}</strong> ({{ p.sku }})</p>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ campo(form.codigo) }}{{ campo(form.proveedor_id) }}{{ campo(form.cantidad) }}{{ campo(form.costo) }}
+      {{ campo(form.fecha_ingreso) }}{{ campo(form.fecha_caducidad) }}{{ campo(form.ubicacion) }}
+      <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Registrar entrada</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.producto_detalle', id=p.id) }}">Cancelar</a></div>
+    </form>
+  </div>
+</section>
+{% endblock %}

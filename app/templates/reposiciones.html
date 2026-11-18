@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% from "_macros.html" import paginacion %}{% block title %}Reposición{% endblock %}
+{% block content %}
+<h1 class="h2 mb-3">Solicitudes de reposición</h1>
+<form method="get" class="row g-2 align-items-end mb-3" role="search" aria-label="Filtrar solicitudes">
+  <div class="col-8 col-md-3"><label for="estado" class="form-label fw-semibold">Estado</label>
+    <select id="estado" class="form-select" name="estado">
+      <option value="pendiente" {{ 'selected' if estado=='pendiente' }}>Pendientes</option>
+      <option value="atendida" {{ 'selected' if estado=='atendida' }}>Atendidas</option>
+      <option value="todas" {{ 'selected' if estado=='todas' }}>Todas</option></select></div>
+  <div class="col-4 col-md-auto"><button class="btn btn-primary w-100" type="submit">Filtrar</button></div>
+</form>
+<div class="table-responsive"><table class="table table-striped align-middle">
+  <caption class="visually-hidden">Solicitudes de reposición</caption>
+  <thead><tr><th scope="col">Creada</th><th scope="col">Producto</th><th scope="col">Cantidad sugerida</th><th scope="col">Estado</th><th scope="col"><span class="visually-hidden">Acciones</span></th></tr></thead>
+  <tbody>{% for s in pag.items %}<tr><td>{{ s.creada_en|hora_local }}</td>
+    <td><a href="{{ url_for('main.producto_detalle', id=s.producto_id) }}">{{ s.producto.nombre }}</a></td>
+    <td>{{ s.cantidad_sugerida }}</td><td>{{ s.estado }}</td>
+    <td>{% if s.estado == 'pendiente' and current_user.rol.nombre in ('admin','bodega') %}
+      <form method="post" action="{{ url_for('main.reposicion_atender', id=s.id) }}" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-primary" type="submit">Marcar atendida</button></form>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="5">No hay solicitudes.</td></tr>{% endfor %}</tbody>
+</table></div>
+{{ paginacion(pag, 'main.reposiciones', filtros) }}
+{% endblock %}

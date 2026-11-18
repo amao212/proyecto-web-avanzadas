@@ -1,0 +1,44 @@
+{% extends "base.html" %}{% block title %}{{ p.nombre }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+  <h1 class="h2 mb-0">{{ p.nombre }} <small class="text-body-secondary">({{ p.sku }})</small></h1>
+  <div class="d-flex flex-wrap gap-2">
+    {% if current_user.rol.nombre in ('admin','ventas') %}<a class="btn btn-primary" href="{{ url_for('main.salida', id=p.id) }}">Registrar salida</a>{% endif %}
+    {% if current_user.rol.nombre in ('admin','bodega') %}
+      <a class="btn btn-primary" href="{{ url_for('main.entrada', id=p.id) }}">Registrar entrada (lote)</a>
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.producto_editar', id=p.id) }}">Editar</a>
+      <form method="post" action="{{ url_for('main.producto_eliminar', id=p.id) }}" data-confirm="¿Eliminar el producto {{ p.nombre }}? Esta acción no se puede deshacer." class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger" type="submit">Eliminar</button></form>
+    {% endif %}
+  </div>
+</div>
+<section class="card mb-4" aria-label="Datos del producto"><div class="card-body">
+  <p>{{ p.descripcion or 'Sin descripción.' }}</p>
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Unidad</dt><dd class="col-sm-9">{{ p.unidad }}</dd>
+    <dt class="col-sm-3">Estado</dt><dd class="col-sm-9">{{ p.estado }}</dd>
+    <dt class="col-sm-3">Stock mínimo</dt><dd class="col-sm-9">{{ p.stock_minimo }}</dd>
+    <dt class="col-sm-3">Stock disponible para venta</dt><dd class="col-sm-9 mb-0">{% if p.stock_disponible <= p.stock_minimo %}<strong class="stock-bajo"><span aria-hidden="true">⚠ </span>{{ p.stock_disponible }}<span class="visually-hidden"> (stock bajo)</span></strong>{% else %}{{ p.stock_disponible }}{% endif %}</dd>
+  </dl>
+</div></section>
+<h2 class="h4">Lotes (orden FEFO)</h2>
+<div class="table-responsive mb-4"><table class="table table-striped align-middle">
+  <caption class="visually-hidden">Lotes del producto ordenados por fecha de caducidad</caption>
+  <thead><tr><th scope="col">Lote</th><th scope="col">Proveedor</th><th scope="col">Inicial</th><th scope="col">Disponible</th><th scope="col">Costo</th><th scope="col">Ingreso</th><th scope="col">Caduca</th><th scope="col">Ubicación</th><th scope="col">Estado</th></tr></thead>
+  <tbody>{% for l in lotes %}<tr class="{{ 'vencido' if l.vencido }}">
+    <td>{{ l.codigo }}</td><td>{{ l.proveedor.nombre }}</td><td>{{ l.cantidad_inicial }}</td><td>{{ l.cantidad_disponible }}</td>
+    <td>${{ '%.2f'|format(l.costo_unitario) }}</td><td>{{ l.fecha_ingreso|fecha }}</td><td>{{ l.fecha_caducidad|fecha }}</td>
+    <td>{{ l.ubicacion or '—' }}</td><td>{% if l.vencido %}<strong class="stock-bajo">vencido</strong>{% else %}{{ l.estado }}{% endif %}</td></tr>
+  {% else %}<tr><td colspan="9">Aún no hay lotes.</td></tr>{% endfor %}</tbody>
+</table></div>
+<h2 class="h4">Últimos movimientos</h2>
+<div class="table-responsive mb-3"><table class="table table-striped align-middle">
+  <caption class="visually-hidden">Últimos movimientos del producto</caption>
+  <thead><tr><th scope="col">Fecha</th><th scope="col">Tipo</th><th scope="col">Lote</th><th scope="col">Cantidad</th><th scope="col">Usuario</th><th scope="col">Motivo</th></tr></thead>
+  <tbody>{% for m in movs %}<tr><td>{{ m.fecha|hora_local }}</td><td>{{ m.tipo }}</td><td>{{ m.lote.codigo }}</td>
+    <td>{{ m.cantidad }}</td><td>{{ m.usuario.nombre }}</td><td>{{ m.motivo or '—' }}</td></tr>
+  {% else %}<tr><td colspan="6">Sin movimientos.</td></tr>{% endfor %}</tbody>
+</table></div>
+<p><a href="{{ url_for('main.productos') }}">← Volver al listado</a></p>
+{% endblock %}

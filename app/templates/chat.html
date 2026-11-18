@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}Chat{% endblock %}
+{% block content %}
+<h1 class="h2 mb-3">Chat interno</h1>
+<div id="chat" class="row g-3">
+  <aside class="col-md-4 col-lg-3" aria-label="Salas y usuarios conectados">
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6">Salas</h2>
+      <ul id="salas" class="list-unstyled d-grid gap-2 mb-0">{% for s in salas %}<li><button type="button" class="btn btn-outline-primary text-start w-100 sala" data-sala="{{ s.id }}" aria-pressed="false">{{ s.nombre }}</button></li>{% endfor %}</ul>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <h2 class="h6">Conectados (<span id="n-conectados">0</span>)</h2>
+      <ul id="conectados" class="list-unstyled mb-0"></ul>
+    </div></div>
+  </aside>
+  <section class="col-md-8 col-lg-9" aria-labelledby="sala-actual"><div class="card"><div class="card-body">
+    <h2 id="sala-actual" class="h5">Elige una sala</h2>
+    <div id="mensajes" class="mensajes" role="log" aria-live="polite" aria-label="Mensajes de la sala" tabindex="0"></div>
+    <form id="form-chat" class="input-group mt-3" autocomplete="off">
+      <label for="texto" class="visually-hidden">Mensaje</label>
+      <input id="texto" class="form-control" type="text" maxlength="500" required placeholder="Escribe un mensaje…" disabled>
+      <button class="btn btn-primary" type="submit" id="enviar" disabled>Enviar</button>
+    </form>
+  </div></div></section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/chat.js') }}"></script>{% endblock %}

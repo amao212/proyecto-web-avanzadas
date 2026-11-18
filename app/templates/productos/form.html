@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% from "_macros.html" import campo %}{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<section class="card shadow-sm mx-auto form-estrecha" aria-labelledby="titulo">
+  <div class="card-body p-4">
+    <h1 id="titulo" class="h3 mb-3">{{ titulo }}</h1>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ campo(form.sku) }}{{ campo(form.nombre) }}{{ campo(form.descripcion, rows=3) }}
+      {{ campo(form.stock_minimo) }}{{ campo(form.unidad) }}{{ campo(form.estado) }}
+      <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Guardar</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.productos') }}">Cancelar</a></div>
+    </form>
+  </div>
+</section>
+{% endblock %}

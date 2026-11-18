@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% block title %}Inicio{% endblock %}
+{% block content %}
+<h1 class="h2 mb-4">Panel principal</h1>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card h-100 text-center"><div class="card-body"><p class="cifra mb-0">{{ total_productos }}</p><p class="mb-0">Productos activos</p></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card h-100 text-center"><div class="card-body"><p class="cifra mb-0">{{ stock_bajo|length }}</p><p class="mb-0">Con stock mínimo</p></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card h-100 text-center"><div class="card-body"><p class="cifra mb-0">{{ por_caducar|length }}</p><p class="mb-0">Lotes por caducar</p></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card h-100 text-center"><div class="card-body"><p class="cifra mb-0">{{ pendientes }}</p><p class="mb-0">Reposiciones pendientes</p></div></div></div>
+</div>
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a class="btn btn-primary" href="{{ url_for('main.productos') }}">Gestionar productos (CRUD)</a>
+  <a class="btn btn-outline-primary" href="{{ url_for('main.chat') }}">Abrir chat</a>
+</div>
+<div class="row g-3">
+  <section class="col-lg-6" aria-labelledby="h-stock"><div class="card h-100"><div class="card-body">
+    <h2 id="h-stock" class="h5">Stock en nivel mínimo</h2>
+    {% if stock_bajo %}<ul class="list-group list-group-flush">{% for p, stock in stock_bajo %}
+      <li class="list-group-item"><a href="{{ url_for('main.producto_detalle', id=p.id) }}">{{ p.nombre }}</a> — {{ stock }} / mínimo {{ p.stock_minimo }}</li>
+    {% endfor %}</ul>{% else %}<p class="form-text mb-0">Sin alertas de stock.</p>{% endif %}
+  </div></div></section>
+  <section class="col-lg-6" aria-labelledby="h-cad"><div class="card h-100"><div class="card-body">
+    <h2 id="h-cad" class="h5">Lotes próximos a caducar</h2>
+    {% if por_caducar %}<ul class="list-group list-group-flush">{% for l in por_caducar %}
+      <li class="list-group-item">{{ l.producto.nombre }} — lote {{ l.codigo }} caduca {{ l.fecha_caducidad|fecha }} ({{ l.cantidad_disponible }} u.)</li>
+    {% endfor %}</ul>{% else %}<p class="form-text mb-0">Sin lotes próximos a caducar.</p>{% endif %}
+  </div></div></section>
+  {% if vencidos %}<section class="col-12" aria-labelledby="h-venc"><div class="card"><div class="card-body">
+    <h2 id="h-venc" class="h5">Lotes vencidos con existencias (no aptos para venta)</h2>
+    <ul class="list-group list-group-flush">{% for l in vencidos %}
+      <li class="list-group-item">{{ l.producto.nombre }} — lote {{ l.codigo }} venció {{ l.fecha_caducidad|fecha }} ({{ l.cantidad_disponible }} u.)</li>
+    {% endfor %}</ul>
+  </div></div></section>{% endif %}
+</div>
+{% endblock %}
